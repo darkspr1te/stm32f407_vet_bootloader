@@ -4,7 +4,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "stdint.h"
+#define NVIC_VectTab_RAM             ((uint32_t)0x20000000)
+#define NVIC_VectTab_FLASH           ((uint32_t)0x08000000)
+#define IS_NVIC_VECTTAB(VECTTAB) (((VECTTAB) == NVIC_VectTab_RAM) || \
+                                  ((VECTTAB) == NVIC_VectTab_FLASH))
 
+void NVIC_SetVectorTable(uint32_t NVIC_VectTab, uint32_t Offset);
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
@@ -118,8 +124,6 @@ extern "C" {
 #define PB1_GPIO_Port GPIOB
 #define PB12_Pin GPIO_PIN_12
 #define PB12_GPIO_Port GPIOB
-#define WIFI_RST_Pin GPIO_PIN_8
-#define WIFI_RST_GPIO_Port GPIOA
 #define SW_DIO_Pin GPIO_PIN_13
 #define SW_DIO_GPIO_Port GPIOA
 #define SW_CLK_Pin GPIO_PIN_14
