@@ -17,16 +17,22 @@ int main(void)
 {
   HAL_Init();
   SystemClock_Config();
-  NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0xC000);
+ // MKS tft35 V1 boots from 0xc000 and not 0x7000 as the others do.
+ //
+ // NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0xC000);
   
   MX_GPIO_Init();
-  MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
-  MX_USART6_UART_Init();
+  MX_USART1_UART_Init();//TX,RX
+  MX_USART3_UART_Init();//WIFI TX RX
+  MX_USART6_UART_Init();//AUX-1 ?
 
   while (1)
   {
-  //do nothing for now, just testing
+  //do nothing for now, just testing so blink the LCD backlight 
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,0);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,1);
   }
 
 }
@@ -161,6 +167,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+//still have to config the ports before any will function 
+
 
 }
 
