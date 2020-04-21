@@ -9,10 +9,12 @@ Use platformio to build,
 
 ## Supported models
 MKS TFT3.5  V1
+
 MKS TFT3.5  V3
 
 ## UN-Supported Models
 MKS TFT2.8 Any Version
+
 MKS TFT 7 Any Version 
 
 
