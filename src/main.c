@@ -29,10 +29,16 @@ int main(void)
   while (1)
   {
   //do nothing for now, just testing so blink the LCD backlight 
+  //schematics say PA1 is backlight, code says it's PD12 WTF?
   HAL_Delay(100);
-  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,0);
+  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_SET);
   HAL_Delay(100);
-  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,1);
+  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_RESET);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin( GPIOD, GPIO_PIN_1,GPIO_PIN_SET);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin( GPIOD, GPIO_PIN_1,GPIO_PIN_RESET);
+
   }
 
 }
@@ -199,47 +205,36 @@ static void MX_GPIO_Init(void)
 
 ////
 
-  /*Configure GPIO pins :PB12_Pin F_CS_Pin *///GPIO_PIN_2|
+
   GPIO_InitStruct.Pin = F_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-   /*Configure GPIO pins :PB12_Pin */
+
   GPIO_InitStruct.Pin = PB12_Pin ;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SDIO_CD_Pin */
   GPIO_InitStruct.Pin = SDIO_CD_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SDIO_CD_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin Output Level */
-  //HAL_GPIO_WritePin(GPIOA, WIFI_IO0_Pin|WIFI_RST_Pin|SW_DIO_Pin|SW_CLK_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, T_CS_Pin|T_PEN_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level *///GPIO_PIN_2|
-  HAL_GPIO_WritePin(GPIOB, PB12_Pin 
-                          |F_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, PB12_Pin |F_CS_Pin, GPIO_PIN_RESET);
 
   HAL_GPIO_WritePin(GPIOB,PB12_Pin, GPIO_PIN_RESET);
 
-   /*Configure GPIO pin Output Level */
-  //HAL_GPIO_WritePin(GPIOB, PB4_Pin, GPIO_PIN_SET);
-  
-
-  /*Configure GPIO pin Output Level */
+ 
   HAL_GPIO_WritePin(SDIO_CD_GPIO_Port, SDIO_CD_Pin, GPIO_PIN_RESET);
-  
-  /*Configure GPIO pin Output Level */
+
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
 
 GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_15;
