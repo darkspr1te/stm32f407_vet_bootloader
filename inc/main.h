@@ -70,6 +70,8 @@ void NVIC_SetVectorTable(uint32_t NVIC_VectTab, uint32_t Offset);
 #define TH_CS_GPIO_Port GPIOD
 #define BLACK_LIGHT_Pin GPIO_PIN_12
 #define BLACK_LIGHT_GPIO_Port GPIOD
+#define SCH_BACK_LIGHT_Pin GPIO_PIN_1
+#define SCH_BACK_LIGHT_GPIO_Port GPIOA
 #define FSMC_RESET_Pin GPIO_PIN_13
 #define FSMC_RESET_GPIO_Port GPIOD
 #define Z__Pin GPIO_PIN_3

@@ -35,9 +35,9 @@ int main(void)
   HAL_Delay(100);
   HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_RESET);
   HAL_Delay(100);
-  HAL_GPIO_WritePin( GPIOD, GPIO_PIN_1,GPIO_PIN_SET);
+  HAL_GPIO_WritePin( SCH_BACK_LIGHT_GPIO_Port, SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
   HAL_Delay(100);
-  HAL_GPIO_WritePin( GPIOD, GPIO_PIN_1,GPIO_PIN_RESET);
+  HAL_GPIO_WritePin( SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_RESET);
 
   }
 
@@ -252,11 +252,16 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct;
 
-  /* GPIO Ports Clock Enable */
+  /* GPIO Ports Clock Enable 
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+    */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 //still have to config the ports before any will function 
   GPIO_InitStruct.Pin = GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -279,13 +284,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
+
+//according to schematics PA1 is backlight signal
+  GPIO_InitStruct.Pin = SCH_BACK_LIGHT_Pin ;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(SCH_BACK_LIGHT_GPIO_Port, &GPIO_InitStruct);
+//according to oem source code , ahem, "blacklight is on PD12"
+GPIO_InitStruct.Pin = BLACK_LIGHT_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+GPIO_InitStruct.Pull = GPIO_PULLUP;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+HAL_GPIO_Init(BLACK_LIGHT_GPIO_Port, &GPIO_InitStruct);
 ////
 
 
