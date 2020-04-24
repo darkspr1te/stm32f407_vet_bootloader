@@ -7,6 +7,10 @@ This Bootloader is a replacement for the MKS series TFT screens which use stm32f
 ## Build Guide
 Use platformio to build, 
 
+
+## Binary only
+can be found in buildroot/SDCARD/firmware.bin 
+
 ## Supported models
 MKS TFT3.5  V1
 

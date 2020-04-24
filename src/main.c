@@ -17,8 +17,9 @@ int main(void)
 {
   HAL_Init();
   SystemClock_Config();
+
  // MKS tft35 V1 boots from 0xc000 and not 0x7000 as the others do.
- //
+ // this code for use when used as bootloader - 
  // NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0xC000);
   
   MX_GPIO_Init();
@@ -35,16 +36,16 @@ int main(void)
   HAL_Delay(100);
   HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_RESET);
   HAL_Delay(100);
-  HAL_GPIO_WritePin( SCH_BACK_LIGHT_GPIO_Port, SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port, SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
   HAL_Delay(100);
-  HAL_GPIO_WritePin( SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_RESET);
 
   }
 
 }
 
 /**
-  * @brief System Clock Configuration
+  * @brief System Clock Configuration via stm toolkit 
   * @retval None
   */
 void SystemClock_Config_a(void)
