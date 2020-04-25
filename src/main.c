@@ -1,6 +1,11 @@
+// MKS TFT 3.5" V1.0 Bootloader By darkspr1te & iz3man 
+// reads mkstft35.bin from sdcard and flashes to 0xc0000 
+
+
 
 #include "main.h"
 #include "stm32f407xx.h"
+#include "mkstft35.h"
 
 
 UART_HandleTypeDef huart1;
@@ -12,83 +17,113 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USART6_UART_Init(void);
+void test_stuff(void);
 
 int main(void)
 {
   HAL_Init();
   SystemClock_Config();
-
- // MKS tft35 V1 boots from 0xc000 and not 0x7000 as the others do.
- // this code for use when used as bootloader - 
- // NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0xC000);
-  
   MX_GPIO_Init();
   MX_USART1_UART_Init();//TX,RX
   MX_USART3_UART_Init();//WIFI TX RX
   MX_USART6_UART_Init();//AUX-1 ?
+//To-do 
+//Spi init 
+//eprom init 
+//flash write 
 
-  while (1)
-  {
+
+  test_stuff();
+  #ifdef DEBUG
+    printf("\n\r\n\r\n\rBooting\n\r");
+    printf("Software version: %s\r\n",SOFTWARE_VERSION);
+    printf("Board Build: \"%s\"\r\n",HARDWARE);
+    printf("Build epoch %d\n\r",LAST_BUILD_TIME);
+    printf("%d\n\r",LOADER_VARIANT);
+  #endif
+
+
+// Ok we blinked the screen now lets boot
+//
+//NVIC_SetVectorTable(NVIC_VectTab_FLASH,APP_ADDRESS);
+ Jump_To_App();
+
+}
+
+void test_stuff(void)
+{
+  
   //do nothing for now, just testing so blink the LCD backlight 
   //schematics say PA1 is backlight, code says it's PD12 WTF?
-  HAL_Delay(100);
-  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_SET);
-  HAL_Delay(100);
-  HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_RESET);
-  HAL_Delay(100);
-  HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port, SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
-  HAL_Delay(100);
-  HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_RESET);
-
-  }
-
+  // so we blink a differing number of times so user can tell me which pins
+  // alternate method is we choose a pin and blink it, if it works we carry on if not we swap pins and carry on.
+  for (int count=0;count<6;count++)
+    {
+      HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_SET);
+      HAL_Delay(100);
+      HAL_GPIO_WritePin(BLACK_LIGHT_GPIO_Port,BLACK_LIGHT_Pin,GPIO_PIN_RESET);
+      HAL_Delay(100);
+    }
+  for (int count=0;count<3;count++)
+    {
+      HAL_Delay(100);
+      HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port, SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
+      HAL_Delay(100);
+      HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_RESET);
+    }
+  
 }
-
-/**
-  * @brief System Clock Configuration via stm toolkit 
-  * @retval None
-  */
-void SystemClock_Config_a(void)
+//move vector table 
+inline void moveVectorTable(uint32_t Offset)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Configure the main internal regulator output voltage 
-  */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the CPU, AHB and APB busses clocks 
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 96;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB busses clocks 
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    // __disable_irq();
+    SCB->VTOR = FLASH_BASE | Offset;
 }
 
 
-//oem sysclkcfg
+//goto application
+ static uint8_t go_to(uint32_t myfunc)
+{
+	uint8_t ret = 0;
+	void(*ptr)(void);
+	if((*(volatile uint32_t *)myfunc & 0x2ffe0000) == 0x20000000)
+	{
 
+		__set_MSP((*(volatile uint32_t *)myfunc));
+		ptr = (void(*)(void))(*(__IO uint32_t*)(myfunc+4));
+
+		ptr();
+	}
+	return ret;      
+}
+//Jump to application
+
+ void Jump_To_App(void)
+ {
+     // f_mount(NULL, SPISD_Path, 1);
+    //  HAL_SPI_MspDeInit(&hspi1);
+     // HAL_TIM_Base_MspDeInit(&htim2);
+
+      __HAL_RCC_GPIOA_CLK_DISABLE();
+      __HAL_RCC_GPIOB_CLK_DISABLE();
+      __HAL_RCC_GPIOC_CLK_DISABLE();
+      __HAL_RCC_GPIOD_CLK_DISABLE();
+      __HAL_RCC_GPIOE_CLK_DISABLE();
+
+      HAL_DeInit();
+
+      // Disabling SysTick interrupt
+      SysTick->CTRL = 0;
+      moveVectorTable(MAIN_PR_OFFSET);
+      // Setting initial value to stack pointer
+      __set_MSP(*mcuFirstPageAddr);
+      // booting really
+
+      Callable resetHandler = (Callable) (*(mcuFirstPageAddr + 1) );
+      resetHandler();
+ }
+
+//Configure clocks 
 void SystemClock_Config(void)
 {
 
@@ -253,12 +288,6 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct;
 
-  /* GPIO Ports Clock Enable 
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-    */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
