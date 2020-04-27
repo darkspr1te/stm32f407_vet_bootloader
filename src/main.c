@@ -6,24 +6,34 @@
 #include "main.h"
 #include "stm32f407xx.h"
 #include "mkstft35.h"
-
+#include "lcd.h"
+#include "usart.h"
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
 
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART1_UART_Init(void);
-static void MX_USART3_UART_Init(void);
-static void MX_USART6_UART_Init(void);
+ void MX_GPIO_Init(void);
+void MX_USART1_UART_Init(void);
+ void MX_USART3_UART_Init(void);
+ void MX_USART6_UART_Init(void);
 void test_stuff(void);
 
 int main(void)
 {
   HAL_Init();
+ // HAL_MspInit();
   SystemClock_Config();
   MX_GPIO_Init();
+  for (int x=0;x<50;x++)
+  {
+    HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
+    HAL_Delay(50);
+    HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_RESET);
+    HAL_Delay(50);
+  }
+  
   MX_USART1_UART_Init();//TX,RX
   MX_USART3_UART_Init();//WIFI TX RX
   MX_USART6_UART_Init();//AUX-1 ?
@@ -31,15 +41,15 @@ int main(void)
 //Spi init 
 //eprom init 
 //flash write 
+  init_lcd();
 
-
-  test_stuff();
+HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
   #ifdef DEBUG
     printf("\n\r\n\r\n\rBooting\n\r");
     printf("Software version: %s\r\n",SOFTWARE_VERSION);
     printf("Board Build: \"%s\"\r\n",HARDWARE);
     printf("Build epoch %d\n\r",LAST_BUILD_TIME);
-    printf("%d\n\r",LOADER_VARIANT);
+    printf("%s\n\r",LOADER_VARIANT);
   #endif
 
 
@@ -103,7 +113,7 @@ inline void moveVectorTable(uint32_t Offset)
      // f_mount(NULL, SPISD_Path, 1);
     //  HAL_SPI_MspDeInit(&hspi1);
      // HAL_TIM_Base_MspDeInit(&htim2);
-
+  while (1);
       __HAL_RCC_GPIOA_CLK_DISABLE();
       __HAL_RCC_GPIOB_CLK_DISABLE();
       __HAL_RCC_GPIOC_CLK_DISABLE();
@@ -188,7 +198,7 @@ void SystemClock_Config(void)
 
 /** NVIC Configuration
 */
-static void MX_NVIC_Init(void)
+ void MX_NVIC_Init(void)
 {
   /* TIM2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(TIM2_IRQn, 2, 0);
@@ -209,7 +219,7 @@ static void MX_NVIC_Init(void)
   * @param None
   * @retval None
   */
-static void MX_USART1_UART_Init(void)
+void MX_USART1_UART_Init(void)
 {
 
 
@@ -234,7 +244,7 @@ static void MX_USART1_UART_Init(void)
   * @param None
   * @retval None
   */
-static void MX_USART3_UART_Init(void)
+void MX_USART3_UART_Init(void)
 {
 
 
@@ -259,7 +269,7 @@ static void MX_USART3_UART_Init(void)
   * @param None
   * @retval None
   */
-static void MX_USART6_UART_Init(void)
+ void MX_USART6_UART_Init(void)
 {
 
 
@@ -284,7 +294,7 @@ static void MX_USART6_UART_Init(void)
   * @param None
   * @retval None
   */
-static void MX_GPIO_Init(void)
+ void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -322,11 +332,13 @@ static void MX_GPIO_Init(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(SCH_BACK_LIGHT_GPIO_Port, &GPIO_InitStruct);
 //according to oem source code , ahem, "blacklight is on PD12"
-GPIO_InitStruct.Pin = BLACK_LIGHT_Pin;
-GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-GPIO_InitStruct.Pull = GPIO_PULLUP;
-GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-HAL_GPIO_Init(BLACK_LIGHT_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = BLACK_LIGHT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(BLACK_LIGHT_GPIO_Port, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
 ////
 
 
