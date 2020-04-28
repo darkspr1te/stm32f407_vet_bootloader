@@ -3,18 +3,7 @@
 
 #define SetCs  HAL_GPIO_WritePin(GPIOD,GPIO_PIN_7,GPIO_PIN_SET);
 #define ClrCs  HAL_GPIO_WritePin(GPIOD,GPIO_PIN_7,GPIO_PIN_RESET);
-#define u8 uint8_t
-#define u16 uint16_t
-#define u32 uint32_t
 
-#define I8    signed char
-#define U8  unsigned char     /* unsigned 8  bits. */
-#define I16   signed short    /*   signed 16 bits. */
-#define U16 unsigned short    /* unsigned 16 bits. */
-#define I32   signed long   /*   signed 32 bits. */
-#define U32 unsigned long   /* unsigned 32 bits. */
-#define I16P I16              /*   signed 16 bits OR MORE ! */
-#define U16P U16              /* unsigned 16 bits OR MORE ! */
 
 void init_FSMC(void);
 
@@ -30,6 +19,8 @@ LCD_Initializtion();
 
 
 SRAM_HandleTypeDef hsram1;
+static uint32_t FSMC_Initialized = 0;
+
 void init_FSMC(void)
 {
 
@@ -57,11 +48,13 @@ defines_  DB_13 PD8
 defines_  DB_14 PD9
 defines_  DB_15 PD10
 */
-   FSMC_NORSRAM_TimingTypeDef Timing;
 
- GPIO_InitTypeDef GPIO_InitStruct;
+  FSMC_NORSRAM_TimingTypeDef Timing = {0};
+  FSMC_NORSRAM_TimingTypeDef ExtTiming = {0};
 
-
+  GPIO_InitTypeDef GPIO_InitStruct ={0};
+#ifdef FSMC_SETUP_ONE
+ printf("configure lcd pins\n\r");
 GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10 
                           |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14 
                           |GPIO_PIN_15;
@@ -85,6 +78,7 @@ GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 
+  printf("configure FSMC device\n\r");
   
   hsram1.Instance = FSMC_NORSRAM_DEVICE;
   hsram1.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;
@@ -112,10 +106,141 @@ GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10
   Timing.DataLatency = 17;
   Timing.AccessMode = FSMC_ACCESS_MODE_A;
   /* ExtTiming */
+#endif
 
+/*
+  //**FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM4;//  这里我们使用NE4 ，也就对应BTCR[6],[7]。
+  FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM1;                                                  //**
+  FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable; // 不复用数据地址
+  FSMC_NORSRAMInitStructure.FSMC_MemoryType =FSMC_MemoryType_SRAM;// FSMC_MemoryType_SRAM;  //SRAM   
+  FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;//存储器数据宽度为16bit   
+  FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode =FSMC_BurstAccessMode_Disable;// FSMC_BurstAccessMode_Disable; 
+  FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
+	FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait=FSMC_AsynchronousWait_Disable; 
+  FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;   
+  FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;  
+  FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;	//  存储器写使能
+  FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;   
+  FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Enable; // 读写使用不同的时序
+  FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable; 
+  FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &readWriteTiming; //读写时序
+  FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &writeTiming;  //写时序
+
+  FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);  //初始化FSMC配置
+
+  //**FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM4, ENABLE);  // 使能BANK1 
+  FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, ENABLE);  // 使能BANK1 
+*/
+#ifdef FSMC_SETUP_TWO
+ 
+if (FSMC_Initialized) {
+    return;
+  }
+  FSMC_Initialized = 1;
+  /* Peripheral clock enable */
+  __HAL_RCC_FSMC_CLK_ENABLE();
+  
+  /** FSMC GPIO Configuration  
+  PE7   ------> FSMC_D4
+  PE8   ------> FSMC_D5
+  PE9   ------> FSMC_D6
+  PE10   ------> FSMC_D7
+  PE11   ------> FSMC_D8
+  PE12   ------> FSMC_D9
+  PE13   ------> FSMC_D10
+  PE14   ------> FSMC_D11
+  PE15   ------> FSMC_D12
+  PD8   ------> FSMC_D13
+  PD9   ------> FSMC_D14
+  PD10   ------> FSMC_D15
+  PD12   ------> FSMC_A17
+  PD14   ------> FSMC_D0
+  PD15   ------> FSMC_D1
+  PD0   ------> FSMC_D2
+  PD1   ------> FSMC_D3
+  PD4   ------> FSMC_NOE
+  PD5   ------> FSMC_NWE
+  PD7   ------> FSMC_NE1
+  */
+  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10 
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14 
+                          |GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF12_FSMC;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_12 
+                          |GPIO_PIN_14|GPIO_PIN_15|GPIO_PIN_0|GPIO_PIN_1 
+                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF12_FSMC;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+
+  hsram1.Instance = FSMC_NORSRAM_DEVICE;
+  hsram1.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;
+  /* hsram1.Init */
+  hsram1.Init.NSBank = FSMC_NORSRAM_BANK1;
+  hsram1.Init.DataAddressMux = FSMC_DATA_ADDRESS_MUX_DISABLE;
+  hsram1.Init.MemoryType = FSMC_MEMORY_TYPE_SRAM;
+  hsram1.Init.MemoryDataWidth = FSMC_NORSRAM_MEM_BUS_WIDTH_16;
+  hsram1.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
+  hsram1.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
+  hsram1.Init.WrapMode = FSMC_WRAP_MODE_DISABLE;
+  hsram1.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
+  hsram1.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
+  hsram1.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
+  hsram1.Init.ExtendedMode = FSMC_EXTENDED_MODE_ENABLE;
+  hsram1.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
+  hsram1.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
+  hsram1.Init.PageSize = FSMC_PAGE_SIZE_NONE;
+  /* Timing */
+  Timing.AddressSetupTime = 0xf;
+  Timing.AddressHoldTime = 0x0;
+  Timing.DataSetupTime = 60;
+  Timing.BusTurnAroundDuration = 0x0;
+  Timing.CLKDivision = 0x0;
+  Timing.DataLatency = 0x0;
+  Timing.AccessMode = FSMC_ACCESS_MODE_A;
+  /* ExtTiming */
+  ExtTiming.AddressSetupTime =9;
+  ExtTiming.AddressHoldTime = 0x0;
+  ExtTiming.DataSetupTime = 8;
+  ExtTiming.BusTurnAroundDuration = 0x0;
+  ExtTiming.CLKDivision = 0x0;
+  ExtTiming.DataLatency = 0x0;
+  ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
+  /* ExtTiming */
+#endif
+/*
+
+  readWriteTiming.FSMC_AddressSetupTime = 0XF;	 //地址建立时间（ADDSET）为16个HCLK 1/168M=6ns*16=96ns	
+  readWriteTiming.FSMC_AddressHoldTime = 0x00;	 //地址保持时间（ADDHLD）模式A未用到	
+  readWriteTiming.FSMC_DataSetupTime = 60;			//数据保存时间为60个HCLK	=6*60=360ns
+  readWriteTiming.FSMC_BusTurnAroundDuration = 0x00;
+  readWriteTiming.FSMC_CLKDivision = 0x00;
+  readWriteTiming.FSMC_DataLatency = 0x00;
+  readWriteTiming.FSMC_AccessMode = FSMC_AccessMode_A;	 //模式A 
+    
+
+	writeTiming.FSMC_AddressSetupTime =9;	      //地址建立时间（ADDSET）为9个HCLK =54ns 
+  writeTiming.FSMC_AddressHoldTime = 0x00;	 //地址保持时间（A		
+  writeTiming.FSMC_DataSetupTime = 8;		 //数据保存时间为6ns*9个HCLK=54ns
+  writeTiming.FSMC_BusTurnAroundDuration = 0x00;
+  writeTiming.FSMC_CLKDivision = 0x00;
+  writeTiming.FSMC_DataLatency = 0x00;
+  writeTiming.FSMC_AccessMode = FSMC_AccessMode_A;	 //模式A 
+
+ */
   if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
   {
+	   printf("\n\rerror from setting up fsmc controller");
     Error_Handler();
+
   }
 
 }
@@ -160,10 +285,10 @@ void LCD_WriteReg(u16 LCD_Reg,u16 LCD_RegValue)
 void LCD_WrtReg(u16 LCD_Reg)
 {
   /* Write 16-bit Index, then Write Reg */
-  //ClrCs
-  LCD_Reg=LCD_Reg;
+  ClrCs
+  LCD_Reg = LCD_Reg;
   LCD_REG = LCD_Reg;
-  //SetCs
+  SetCs
 }
 /*******************************************************************************
 * Function Name  : LCD_ReadReg
@@ -178,8 +303,8 @@ u16 LCD_ReadReg(u8 LCD_Reg)
   ClrCs
   //LCD->LCD_REG = LCD_Reg;
   data = LCD_RAM; 
-    SetCs
-     return    data;
+  SetCs
+  return    data;
 }
 
 u16 LCD_ReadSta(void)
@@ -470,14 +595,13 @@ void ili9320_Clear(u16 Color)
 #define HAL_Delay(x) delay(x)
 u16  par1,par2,par3;
 //test end//
-int RESET_1963;
+#define RESET_1963   PDout(6)
 void LCD_Initializtion(void)
 {
    volatile u16 i;
    volatile u16 data1,data2,data3;
    
-  // LCD_X_Init();  //初始化连接LCD彩色液晶屏上的管脚，比如这里连接的是FSMC总线
-   //Delay(5); /* delay 50 ms */
+
    #if defined(TFT70)
    for(i=0;i<10;i++)
 	 #endif
@@ -486,9 +610,10 @@ void LCD_Initializtion(void)
 	   LCD_WriteReg(0x0000,0x0001);  
 	   HAL_Delay(50);//Delay(5); /* delay 50 ms */			//start internal osc
 	   DeviceCode = LCD_ReadReg(0x0000);
+	   
 	   HAL_Delay(50);//Delay(5); /* delay 50 ms */
    	 DeviceCode=Read_ID();                                        //**读SSD1963ID
-
+	 printf("Device code %d",DeviceCode);
 			#if defined(TFT70)
 		 if(DeviceCode==0x5761)
 		 {
@@ -877,9 +1002,9 @@ void LCD_Initializtion(void)
 			  //测试值为以下两种情况，显示正常
 			  if(par1!=0x002C && par1!=0x002D)
 			  {
-			  	RESET_1963=0;
+			  //	RESET_1963(0);
 				HAL_Delay(500);
-    				RESET_1963=1;
+    			//	RESET_1963=1;
 			         continue;
 				
 			  }
@@ -897,9 +1022,9 @@ void LCD_Initializtion(void)
 			         LCD_WrtRAM(0x0004);
 			         LCD_WrtRAM(0x0093);
 			         LCD_WrtRAM(0x00E0);*/
-			         RESET_1963=0;
+			   //      RESET_1963=0;
 				  HAL_Delay(500);
-    				  RESET_1963=1;
+    			//	  RESET_1963=1;
 			         continue;
 			   }
 	   }

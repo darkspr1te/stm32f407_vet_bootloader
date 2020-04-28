@@ -14,7 +14,18 @@
 #define Lcd_SET()         PDout(6)=1
 #define Lcd_RESET()       PDout(6)=0
 
+#define u8 uint8_t
+#define u16 uint16_t
+#define u32 uint32_t
 
+#define I8    signed char
+#define U8  unsigned char     /* unsigned 8  bits. */
+#define I16   signed short    /*   signed 16 bits. */
+#define U16 unsigned short    /* unsigned 16 bits. */
+#define I32   signed long   /*   signed 32 bits. */
+#define U32 unsigned long   /* unsigned 32 bits. */
+#define I16P I16              /*   signed 16 bits OR MORE ! */
+#define U16P U16              /* unsigned 16 bits OR MORE ! */
 
 /* Private typedef -----------------------------------------------------------
 typedef struct
@@ -35,6 +46,8 @@ uint16_t DeviceCode;
 
 void init_lcd(void);
 void init_FSMC(void);
+void LCD_setWindowArea(uint16_t StartX, uint16_t StartY, uint16_t Width, uint16_t Height);
+void ili9320_Clear(u16 Color);
 
 
 

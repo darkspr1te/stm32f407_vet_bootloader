@@ -41,7 +41,7 @@ int main(void)
 //Spi init 
 //eprom init 
 //flash write 
-  init_lcd();
+  
 
 HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
   #ifdef DEBUG
@@ -49,9 +49,9 @@ HAL_GPIO_WritePin(SCH_BACK_LIGHT_GPIO_Port,SCH_BACK_LIGHT_Pin,GPIO_PIN_SET);
     printf("Software version: %s\r\n",SOFTWARE_VERSION);
     printf("Board Build: \"%s\"\r\n",HARDWARE);
     printf("Build epoch %d\n\r",LAST_BUILD_TIME);
-    printf("%s\n\r",LOADER_VARIANT);
+    printf("Loader Variant: %s\n\r",LOADER_VARIANT);
   #endif
-
+init_lcd();
 
 // Ok we blinked the screen now lets boot
 //
